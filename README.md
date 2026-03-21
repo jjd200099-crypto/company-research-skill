@@ -1,0 +1,150 @@
+# 🔬 Company Research Skill for Claude Code
+
+> 把一个投研分析师的工作流程，变成一个可复用的 AI 指令模板。
+
+一个 [Claude Code](https://claude.com/claude-code) 自定义 Skill，可以自动化对任何上市公司或 Startup 的深度研究，产出接近机构级质量的研究报告。
+
+## 效果示例
+
+输入：`帮我研究一下 NVDA`
+
+输出：一份完整的 8 章节中文研究报告，包含财务数据表格、竞争格局分析、护城河评估、估值观点、风险提示，以及每条事实的原文链接。
+
+## 四阶段工作流
+
+```
+Phase 1: 多源并行搜索          Phase 2: 深度挖掘
+┌─────────────────────┐      ┌─────────────────────┐
+│ Exa 英文财务搜索     │──┐   │ Jina Reader 读全文   │
+│ Exa 英文竞争分析     │  │   │ 小红书帖子详情+评论  │
+│ Exa 中文覆盖        │  ├──▶│ 跳过付费墙内容       │
+│ 小红书社区搜索       │  │   └──────────┬──────────┘
+│ Twitter/X 搜索      │──┘              │
+└─────────────────────┘              ▼
+                              Phase 3: 结构化输出
+                              ┌─────────────────────┐
+                              │ 八章节标准报告模板    │
+                              │ + Startup 附加模块   │
+                              │ + 全部附源链接       │
+                              └─────────────────────┘
+```
+
+### Phase 1: 多源并行搜索
+
+同时发起 5 个渠道的搜索请求，5-10 秒内完成：
+
+| 渠道 | 工具 | 获取内容 |
+|------|------|---------|
+| 英文财务/分析 | [Exa](https://exa.ai) | 华尔街视角、财报数据、分析师观点 |
+| 英文竞争分析 | [Exa](https://exa.ai) | 护城河、市场份额一手源 |
+| 中文覆盖 | [Exa](https://exa.ai) | 中文券商研报、财经媒体 |
+| 小红书社区 | mcporter + XHS API | 散户情绪、民间讨论 |
+| Twitter/X | [xreach](https://github.com/nicholasgasior/xreach) | 实时市场情绪、大V观点 |
+
+### Phase 2: 深度挖掘
+
+- 用 [Jina Reader](https://jina.ai/reader/) 抓取关键分析文章全文
+- 拉取小红书热帖正文 + 评论区讨论
+- 自动跳过 Seeking Alpha 等付费墙
+
+### Phase 3: 结构化输出
+
+**上市公司** — 固定 8 章节：
+
+| 章节 | 格式要求 |
+|------|---------|
+| 一、公司概况 | 一句话类比 + 业务分部表格 |
+| 二、最新财务数据 | 年度表格 + 季度要点 + 指引 |
+| 三、核心竞争优势 | 编号 + 具体数据点 |
+| 四、增长驱动力 | 驱动力 → 利好 → TAM 表格 |
+| 五、竞争格局 | 对比表格 vs 竞品 |
+| 六、风险与挑战 | 风险 / 严重程度 / 详情 表格 |
+| 七、估值与市场观点 | P/E, EV/EBITDA, 目标价, 牛熊案例 |
+| 八、一句话总结 | 大胆明确的判断 |
+
+**Startup** — 额外增加 3 章节：
+
+| 章节 | 内容 |
+|------|------|
+| 团队评估 | 创始人背景表格 + 团队-市场匹配度 |
+| 技术/产品验证 | 阶段（概念/MVP/量产）+ 客户信号 |
+| 估值分析 | 4 种框架交叉验证，给范围不给点估值 |
+
+## 8 条核心规则
+
+| # | 规则 | 原因 |
+|---|------|------|
+| 1 | **必须附源链接** | 每条事实可追溯 |
+| 2 | **激进使用表格** | 表格传递数据比文字快 3-5x |
+| 3 | **一句话类比** | "Snowflake 是数据的 Airbnb" — 3 秒理解公司 |
+| 4 | **诚实说风险** | 平衡分析，不是推销 |
+| 5 | **估值给明确观点** | 框架 + 场景，不含糊其辞 |
+| 6 | **默认中文输出** | 英文术语保持英文 |
+| 7 | **并行搜索** | 性能关键路径 |
+| 8 | **追问时追加搜索** | 不靠已有知识编，做新的定向搜索 |
+
+## 安装
+
+### 前置依赖
+
+- [Claude Code](https://claude.com/claude-code) CLI
+- [Agent Reach](https://github.com/Panniantong/agent-reach) — 多平台搜索工具（提供 Exa、小红书、Twitter 等渠道）
+
+### 安装步骤
+
+```bash
+# 1. 创建 skill 目录
+mkdir -p ~/.claude/skills/company-research
+
+# 2. 下载 skill 文件
+curl -o ~/.claude/skills/company-research/skill.md \
+  https://raw.githubusercontent.com/jjd200099-crypto/company-research-skill/main/skill.md
+
+# 3. 验证安装
+cat ~/.claude/skills/company-research/skill.md | head -5
+```
+
+安装完成后，在 Claude Code 中直接说：
+
+```
+帮我研究一下 NVDA
+```
+
+即可触发。
+
+## 使用方式
+
+```
+# 上市公司
+"帮我研究一下 NVDA"
+"Research TSMC for me"
+"你怎么看ASML这个公司"
+
+# Startup（可附 PDF/Deck）
+"帮我分析一下这个startup" + 附件
+"这家公司怎么样" + PDF路径
+
+# 追问
+"它的护城河具体体现在哪里"
+"这个行业的竞争格局，详细展开说说"
+"从估值角度，值得投资吗"
+```
+
+## 技术栈
+
+```
+Claude Code          ← 并行工具调用 + 多步推理引擎
+Agent Reach          ← 多平台搜索统一接口
+├── Exa              ← 高质量英文/中文网页搜索
+├── mcporter + XHS   ← 小红书搜索 + 帖子详情
+├── xreach           ← Twitter/X 搜索和读取
+└── Jina Reader      ← URL → 干净文本
+```
+
+## License
+
+MIT
+
+---
+
+Built with [Claude Code](https://claude.com/claude-code) + [Agent Reach](https://github.com/Panniantong/agent-reach)
