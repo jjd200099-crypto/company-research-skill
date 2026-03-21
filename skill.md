@@ -48,10 +48,15 @@ Generate the report in this exact structure:
 - Forward guidance
 - Revenue breakdown (by segment, by region)
 
-## 三、核心竞争优势（护城河）
-- Number each advantage (market share, switching costs, IP, scale, etc.)
-- Include specific data points (e.g., "56% market share", "60%+ gross margin")
+## 三、核心竞争优势（护城河）— 本报告最重要的章节，必须深度展开
+For each moat, provide:
+- A clear mechanism explanation (HOW does this moat work?)
+- Specific data points and quantified evidence
+- A flywheel or feedback loop diagram if applicable (text-based)
+- Comparison to competitors — why can't they replicate this?
 - Quote management or analyst statements where impactful
+- Typical moat categories: infrastructure lock-in, data network effects, developer ecosystem, customer quality, strategic positioning
+- DO NOT just list bullet points — write 1-2 paragraphs per moat with layered argumentation
 
 ## 四、增长驱动力
 - Table format linking each driver to company-specific benefit
@@ -76,7 +81,8 @@ Generate the report in this exact structure:
 
 ### 信息来源
 - Every claim must link to its source URL
-- Include ALL sources used (financial filings, articles, social media posts)
+- Source priority: Professional financial media (FT, Bloomberg, Reuters, WSJ, Forrester) > Industry research (Sacra, etc.) > Company official (annual reports, press releases) > Social media (Xiaohongshu etc., max 1-2 as supplementary "community sentiment")
+- Present as table: Source | Type | URL
 ```
 
 ### Phase 4: For Private/Startup Companies, Add:
@@ -112,6 +118,8 @@ Use multiple frameworks and cross-validate:
 6. **Chinese output by default** — unless user writes in English, output in Chinese with English terms/names kept as-is
 7. **Parallel search is critical** — always launch multiple search calls simultaneously to minimize latency
 8. **Follow-up depth** — when user asks to drill into a specific topic (e.g., "展开说说"), do additional targeted searches rather than just elaborating from existing knowledge
+9. **Moat section is the most valuable part** — spend the most effort here. Each moat needs mechanism explanation, data evidence, flywheel logic, and competitor comparison. 1-2 paragraphs per moat, not just bullet points.
+10. **Source priority** — Professional financial media (FT, Bloomberg, Reuters, Forrester, WSJ) > Industry research firms (Sacra, Gartner) > Company official sources > Social media (Xiaohongshu max 1-2 as supplementary community sentiment)
 
 ## Example Trigger Phrases
 - "帮我研究一下 NVDA"
