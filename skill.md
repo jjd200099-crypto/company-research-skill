@@ -6,33 +6,61 @@ Trigger: User asks to research a company, stock ticker, or startup (e.g., "帮�
 
 ## Research Process
 
-### Phase 1: Multi-Source Parallel Search (launch ALL searches simultaneously)
+### Phase 0: Determine Company Type (PUBLIC vs. PRIVATE)
 
-Run these searches in parallel using the Agent Reach skill tools:
+If the company is **publicly listed**, proceed to Phase 1A (Primary Sources First).
+If the company is **private/startup**, skip to Phase 1B (Multi-Source Search).
 
-1. **English financial/analytical search** (Exa):
-   - `'exa.web_search_exa(query: "[Company] [Ticker] 2025 2026 earnings revenue growth", numResults: 8)'`
-   - `'exa.web_search_exa(query: "[Company] competitive moat market share [industry keywords]", numResults: 5)'`
+### Phase 1A: Primary Sources First (PUBLIC COMPANIES ONLY — MANDATORY)
 
-2. **Chinese coverage** (Exa):
-   - `'exa.web_search_exa(query: "[Chinese name] [Ticker] [industry Chinese keywords]", numResults: 5)'`
+**This phase MUST be completed before any media search.** The goal is to extract facts directly from management's own words.
 
-3. **Xiaohongshu community** (mcporter):
+**Step 1: Retrieve the latest 2-3 quarterly earnings call transcripts**
+- Search: `"[Company] [Ticker] Q[N] FY[YYYY] earnings call transcript"`
+- Preferred sources: company IR page PDF, The Motley Fool, Seeking Alpha, FactSet
+- **Read the FULL transcript**, not summaries. Pay special attention to:
+  - CEO's prepared remarks: what topics does management lead with? What language changed vs. prior quarter?
+  - CFO's prepared remarks: guidance numbers, margin bridge, cash flow commentary
+  - **Analyst Q&A section**: every question and every answer, verbatim
+
+**Step 2: Retrieve the latest earnings press release and slide deck**
+- Search: `"[Company] investor relations quarterly earnings"` or go directly to the company's IR page
+- Extract: all financial tables, segment breakdowns, guidance ranges, balance sheet
+
+**Step 3: Retrieve Investor Day / Capital Markets Day materials (if any)**
+- Search: `"[Company] [Ticker] investor day analyst day capital markets day"`
+- Extract: long-term revenue/margin targets, TAM/SAM, capacity plans, strategic framework
+
+**Step 4: Cross-Quarter Analyst Tracking (CRITICAL)**
+Read across 2-3 transcripts and build:
+- **Analyst Concern Tracker**: which specific questions were asked repeatedly across quarters? By whom? How did management's answer evolve?
+- **Promise vs. Delivery Tracker**: what did management commit to in prior quarters, and what actually happened?
+
+### Phase 1B: Multi-Source Parallel Search
+
+Run these searches in parallel:
+
+1. **English financial/analytical search**:
+   - `"[Company] [Ticker] [current year] [next year] earnings revenue growth"`
+   - `"[Company] competitive moat market share [industry keywords]"`
+
+2. **Chinese coverage**:
+   - `"[Chinese name] [Ticker] [industry Chinese keywords]"`
+
+3. **Xiaohongshu community** (mcporter, if available):
    - `'xiaohongshu.search_feeds(keyword: "[Ticker] [Chinese name] [industry]")'`
 
 4. **Twitter/X** (xreach, if authenticated):
    - `xreach search "[Company] [Ticker]" -n 10 --json`
 
-5. **Investor Day / Analyst Day materials** (Exa — CRITICAL for public companies):
-   - `'exa.web_search_exa(query: "[Company] [Ticker] investor day analyst day capital markets day long-term financial model target", numResults: 5)'`
-   - `'exa.web_search_exa(query: "[Company] [Ticker] investor day revenue target operating margin gross margin TAM", numResults: 5)'`
+5. **Investor Day / Analyst Day materials**:
+   - `"[Company] [Ticker] investor day analyst day capital markets day long-term financial model target"`
 
 ### Phase 2: Deep Dive (fetch details from top results)
 
-- Read full earnings call highlights / press releases via Exa snippets
-- Fetch 2-3 most relevant Xiaohongshu post details with `xiaohongshu.get_feed_detail()`
+- For public companies: cross-reference media reports against what management actually said in transcripts. Flag any discrepancies.
 - Use `curl -s "https://r.jina.ai/[URL]"` to read key analysis articles (skip paywalled sites like Seeking Alpha)
-- **Investor Day deep dive**: If Investor Day / Analyst Day / Capital Markets Day materials are found, read the full presentation or summary via Jina Reader. Extract:
+- **Investor Day deep dive**: If Investor Day / Analyst Day / Capital Markets Day materials are found, read the full presentation or summary. Extract:
   - Management's long-term revenue target and timeline
   - Gross margin and operating margin targets
   - TAM/SAM estimates with breakdown
@@ -49,7 +77,7 @@ Generate the report in this exact structure:
 # [Company Name]（[Ticker] / [Chinese Name]）深度研究
 
 ## 一、公司概况
-- One-line positioning (用类比让人秒懂)
+- Structured one-line positioning (e.g., "全球半导体后端材料第一大供应商，覆盖后端15种关键材料中的10种")
 - CEO, founding year, HQ, employees
 - Core business segments (table format with revenue, %, YoY growth)
 - Key products/services
@@ -57,10 +85,48 @@ Generate the report in this exact structure:
 ## 二、最新财务数据
 - Full year highlights (table: revenue, EPS, margins, FCF, etc.)
 - Latest quarter highlights (bullet points)
-- Forward guidance
+- Forward guidance (with prior guidance comparison if raised/lowered)
 - Revenue breakdown (by segment, by region)
 
-## 三、核心竞争优势（护城河）— 本报告最重要的章节，必须深度展开
+## 三、市场关注焦点与管理层兑现（PUBLIC COMPANIES — 本报告最重要的章节之一）
+
+This section must be HIGH DENSITY and SCANNABLE. The reader wants to know three things fast:
+1. What do investors care about most RIGHT NOW?
+2. Does management deliver on what they promise?
+3. What changed since the last earnings call?
+
+**Format rules:**
+- Group analyst concerns into 4-6 THEMES, not individual questions
+- For each theme: one paragraph combining the key question, who asked it (name+firm), management's answer (verbatim quote), and whether prior commitments were met. No separate tables for each question.
+- Promise tracker: one compact table, not verbose descriptions
+- Post-earnings changes: bullet list, max 5-6 items
+
+### 3.1 市场核心关注点（按重要性排序）
+
+For each theme, write ONE dense paragraph that includes:
+- The core concern (what the market is worried about / watching)
+- Who is asking (analyst name + firm, from transcript)
+- Management's most recent response (direct quote, attributed)
+- Prior quarter context if the answer evolved (e.g., "CFO在Q4表示X，到Q2更新为Y")
+- Current status: resolved / improving / unresolved
+
+Aim for 4-6 themes. Each theme = 1 paragraph, ~100-150 words. No fluff.
+
+### 3.2 承诺兑现记录
+
+Compact table only:
+
+| 承诺 | 时间 | 状态 | 备注 |
+|------|------|------|------|
+
+Status: ✅ 已兑现 / ⏳ 进行中 / ❌ 未兑现 / 🔄 调整
+Keep the "备注" column to ONE sentence max.
+
+### 3.3 电话会后的关键变化
+
+Bullet list of 4-6 items max. Each item: what happened + potential impact on next quarter. No elaboration.
+
+## 四、核心竞争优势（护城河）
 For each moat, provide:
 - A clear mechanism explanation (HOW does this moat work?)
 - Specific data points and quantified evidence
@@ -70,15 +136,15 @@ For each moat, provide:
 - Typical moat categories: infrastructure lock-in, data network effects, developer ecosystem, customer quality, strategic positioning
 - DO NOT just list bullet points — write 1-2 paragraphs per moat with layered argumentation
 
-## 四、增长驱动力
+## 五、增长驱动力
 - Table format linking each driver to company-specific benefit
 - Include TAM/SAM data if available
 
-## 五、竞争格局（if relevant）
+## 六、竞争格局（if relevant）
 - Comparison table vs key competitors
 - Market share data
 
-## 六、管理层长期目标（Investor Day / Analyst Day）— 本报告第二重要的章节
+## 七、管理层长期目标（Investor Day / Analyst Day）
 This section is MANDATORY for public companies. If no Investor Day materials exist, note this explicitly.
 - **Management's long-term financial targets** in table format:
 
@@ -100,24 +166,57 @@ This section is MANDATORY for public companies. If no Investor Day materials exi
 | 指标 | 管理层目标 | 华尔街共识 | 差距分析 |
 |------|-----------|-----------|---------|
 
-## 七、风险与挑战
+## 八、风险与挑战
 - Table format: Risk | Severity | Detail
 
-## 八、估值与市场观点
-- Current valuation metrics (P/E, EV/EBITDA, P/S, etc.)
-- Analyst ratings and price targets
-- Notable bull/bear cases from research
-- **Valuation based on management targets**: Using Investor Day targets, calculate implied valuation at different scenarios:
+## 九、估值分析
 
-| 情景 | 营收 | 利润率 | 利润 | 合理倍数 | 隐含市值 | 隐含股价 | vs 当前 |
-|------|------|--------|------|---------|---------|---------|--------|
+**Act as a professional sector analyst.** Do NOT default to P/E for every company. Choose the valuation method that best fits the industry and company stage. The reader expects you to think like a specialist, not a generalist.
 
-- Include at least 3 scenarios: management target achieved, consensus, and bear case
-- Calculate PEG ratio where applicable
-- Flag if current price already discounts management targets (i.e., upside is exhausted)
+### 9.1 选择适当的估值方法
 
-## 九、一句话总结
-> Bold, definitive summary in 1-2 sentences
+First, explicitly state which valuation methods you are using and WHY they are appropriate for this company/industry. Different industries demand different primary metrics:
+
+| 行业 | 首选方法 | 次选方法 | 避免使用 |
+|------|---------|---------|---------|
+| 矿业/资源 | EV/资源量, EV/产能, NAV(DCF矿山寿命), P/NAV | EV/EBITDA | P/E（利润受商品价格周期扭曲） |
+| 银行/金融 | P/TBV, P/BV, ROTCE, 股息率 | P/E(周期调整) | EV/EBITDA（资本结构特殊）, P/S |
+| SaaS/软件 | EV/Revenue, Rule of 40, EV/ARR | EV/EBITDA, P/FCF | P/E（早期亏损公司不适用） |
+| 消费品/品牌 | EV/EBITDA, P/E(周期调整), DCF | P/S, 品牌价值评估 | 单一P/E（忽略品牌溢价结构） |
+| 半导体/周期 | EV/EBITDA(mid-cycle), P/E(normalized), P/BV | 前瞻P/E | 历史P/E（周期扭曲） |
+| 医药/生物 | rNPV(风险调整NPV), EV/Pipeline, P/E(盈利期) | DCF | P/S（研发期不适用） |
+| 房地产 | NAV, P/NAV, 股息率, Cap Rate | P/BV | P/E（折旧扭曲） |
+
+State your choice explicitly: "本公司属于[行业]，主要使用[方法1]和[方法2]进行估值，因为[原因]。"
+
+### 9.2 同行业可比估值
+
+**MANDATORY.** Every valuation must include a peer comparison table. Select 3-5 closest peers (by business model, size, geography, or growth stage).
+
+| 公司 | [核心指标1] | [核心指标2] | [核心指标3] | 备注 |
+|------|-----------|-----------|-----------|------|
+
+Then position the target company: is it trading at a premium, discount, or inline with peers? State WHY any premium/discount exists (growth differential, quality, risk).
+
+### 9.3 情景分析
+
+Always present at least 3 scenarios with the chosen valuation method:
+
+| 情景 | 关键假设 | [核心指标] | 合理倍数 | 隐含价值 | vs 当前 |
+|------|---------|-----------|---------|---------|--------|
+
+- Bull / Base / Bear with explicit assumptions for each
+- For commodity companies: sensitivity to commodity price (e.g., "锂价每变动1万元/吨 → 利润变动X亿")
+- Flag if current price already discounts the bull case
+
+### 9.4 分析师共识与分歧
+
+- Consensus rating and average target price
+- Notable bull/bear cases from specific analysts (name + firm + thesis)
+- Where consensus may be wrong (your assessment based on primary source analysis)
+
+## 十、总结
+> Structured 2-3 sentence summary covering: current state, key inflection point, and primary risk.
 
 ---
 
@@ -153,18 +252,22 @@ Use multiple frameworks and cross-validate:
 ## Key Rules
 
 1. **ALWAYS include source links** — every fact must be traceable. User has explicitly requested this.
-2. **Use tables aggressively** — they convey data faster than prose
-3. **One-line analogies** — start with a "一句话定位" that makes the company instantly understandable (e.g., "Snowflake 是数据的 Airbnb", "Palantir 是企业的情报大脑")
-4. **Be honest about risks** — don't just list positives. The user values balanced analysis.
-5. **Valuation opinion** — when asked, give a clear framework-based answer, not wishy-washy hedging. State assumptions and present scenarios.
-6. **Chinese output by default** — unless user writes in English, output in Chinese with English terms/names kept as-is
-7. **Parallel search is critical** — always launch multiple search calls simultaneously to minimize latency
-8. **Follow-up depth** — when user asks to drill into a specific topic (e.g., "展开说说"), do additional targeted searches rather than just elaborating from existing knowledge
-9. **Moat section is the most valuable part** — spend the most effort here. Each moat needs mechanism explanation, data evidence, flywheel logic, and competitor comparison. 1-2 paragraphs per moat, not just bullet points.
-10. **Source priority** — **Company Investor Day / Analyst Day / Capital Markets Day presentations are the HIGHEST priority source** for understanding management's strategic vision and long-term financial framework. These are the most important documents a public company produces — they contain management's own targets, TAM estimates, margin roadmaps, and capacity plans. Always search for and reference these materials. They outrank all other sources.
-11. **Investor Day credibility assessment is mandatory** — Don't just report management targets; critically evaluate them. Compare targets to current run-rate, Wall Street consensus, and competitive dynamics. Flag if targets appear conservative (consensus already exceeds them) or aggressive (requires heroic assumptions). Calculate what the stock is worth IF targets are achieved vs. what the market currently prices in.
-12. **Scenario-based valuation** — Always present at least 3 valuation scenarios (bull/base/bear) using management Investor Day targets as the bull case anchor. Show implied stock prices for each. This helps the user understand risk/reward at the current price.
-13. **Strategic investor signals matter** — If major customers or partners have made equity investments (e.g., NVIDIA investing $2B in a supplier), this is a powerful validation signal. Note the amount, structure (equity vs. convertible vs. purchase commitment), and what it implies about demand visibility.
+2. **Use tables aggressively** — they convey data faster than prose.
+3. **Structured positioning** — start with a factual one-line positioning (e.g., "全球半导体后端材料第一大供应商，覆盖后端15种关键材料中的10种"). Avoid overly colloquial or metaphorical titles. Keep the tone professional and structured.
+4. **Facts over interpretation** — especially in the Analyst Tracker and Promise Tracker sections. Present what was said (with attribution), not your opinion of what it means. The user will form their own conclusions.
+5. **Be honest about risks** — don't just list positives. The user values balanced analysis.
+6. **Valuation opinion** — when asked, give a clear framework-based answer, not wishy-washy hedging. State assumptions and present scenarios.
+7. **Chinese output by default** — unless user writes in English, output in Chinese with English terms/names kept as-is.
+8. **Parallel search is critical** — always launch multiple search calls simultaneously to minimize latency.
+9. **Follow-up depth** — when user asks to drill into a specific topic, do additional targeted searches rather than just elaborating from existing knowledge.
+10. **PRIMARY SOURCES FIRST for public companies** — Earnings call transcripts > Quarterly press releases > Investor Day presentations > SEC filings > Analyst reports > Media coverage. Read the actual transcript, not someone's summary of it.
+11. **Cross-quarter tracking is mandatory for public companies** — Read at least 2-3 consecutive earnings call transcripts. Build the Analyst Concern Tracker (who asked what, how answers evolved) and the Promise vs. Delivery Tracker (what management committed to, what actually happened). This is where the real signal is.
+12. **Source priority** — **Earnings call transcripts and company IR materials are the HIGHEST priority source.** Investor Day / Analyst Day / Capital Markets Day presentations are second. These outrank all media coverage and analyst reports.
+13. **Investor Day credibility assessment is mandatory** — Don't just report management targets; critically evaluate them. Compare targets to current run-rate, Wall Street consensus, and competitive dynamics.
+14. **Industry-appropriate valuation** — Do NOT default to P/E for every company. Think like a specialist sector analyst: mining uses EV/resource and NAV; banks use P/TBV and ROTCE; SaaS uses EV/ARR and Rule of 40; consumer brands use EV/EBITDA. Explicitly state which method you chose and why. Always include a peer comparison table with 3-5 comparable companies.
+15. **Scenario-based valuation** — Always present at least 3 valuation scenarios (bull/base/bear) using the industry-appropriate method. Show implied values for each. Include commodity/price sensitivity where applicable.
+16. **Strategic investor signals matter** — If major customers or partners have made equity investments, note the amount, structure, and what it implies about demand visibility.
+16. **Analyst questions must be specific** — Include the analyst's full name, firm, the specific question (paraphrased from transcript), and management's specific answer. "分析师关心中国市场" is unacceptable; "Citi的Filippo Falorni在Q2电话会问旅游零售进展，CEO回答海南1月高双位数增长但北京上海机场因零售商过渡有扰动" is the expected level of detail.
 
 ## Example Trigger Phrases
 - "帮我研究一下 NVDA"
