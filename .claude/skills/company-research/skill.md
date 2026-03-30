@@ -169,18 +169,51 @@ This section is MANDATORY for public companies. If no Investor Day materials exi
 ## 八、风险与挑战
 - Table format: Risk | Severity | Detail
 
-## 九、估值与市场观点
-- Current valuation metrics (P/E, EV/EBITDA, P/S, etc.)
-- Analyst ratings and price targets
-- Notable bull/bear cases from research
-- **Valuation based on management targets**: Using Investor Day targets, calculate implied valuation at different scenarios:
+## 九、估值分析
 
-| 情景 | 营收 | 利润率 | 利润 | 合理倍数 | 隐含市值 | 隐含股价 | vs 当前 |
-|------|------|--------|------|---------|---------|---------|--------|
+**Act as a professional sector analyst.** Do NOT default to P/E for every company. Choose the valuation method that best fits the industry and company stage. The reader expects you to think like a specialist, not a generalist.
 
-- Include at least 3 scenarios: management target achieved, consensus, and bear case
-- Calculate PEG ratio where applicable
-- Flag if current price already discounts management targets (i.e., upside is exhausted)
+### 9.1 选择适当的估值方法
+
+First, explicitly state which valuation methods you are using and WHY they are appropriate for this company/industry. Different industries demand different primary metrics:
+
+| 行业 | 首选方法 | 次选方法 | 避免使用 |
+|------|---------|---------|---------|
+| 矿业/资源 | EV/资源量, EV/产能, NAV(DCF矿山寿命), P/NAV | EV/EBITDA | P/E（利润受商品价格周期扭曲） |
+| 银行/金融 | P/TBV, P/BV, ROTCE, 股息率 | P/E(周期调整) | EV/EBITDA（资本结构特殊）, P/S |
+| SaaS/软件 | EV/Revenue, Rule of 40, EV/ARR | EV/EBITDA, P/FCF | P/E（早期亏损公司不适用） |
+| 消费品/品牌 | EV/EBITDA, P/E(周期调整), DCF | P/S, 品牌价值评估 | 单一P/E（忽略品牌溢价结构） |
+| 半导体/周期 | EV/EBITDA(mid-cycle), P/E(normalized), P/BV | 前瞻P/E | 历史P/E（周期扭曲） |
+| 医药/生物 | rNPV(风险调整NPV), EV/Pipeline, P/E(盈利期) | DCF | P/S（研发期不适用） |
+| 房地产 | NAV, P/NAV, 股息率, Cap Rate | P/BV | P/E（折旧扭曲） |
+
+State your choice explicitly: "本公司属于[行业]，主要使用[方法1]和[方法2]进行估值，因为[原因]。"
+
+### 9.2 同行业可比估值
+
+**MANDATORY.** Every valuation must include a peer comparison table. Select 3-5 closest peers (by business model, size, geography, or growth stage).
+
+| 公司 | [核心指标1] | [核心指标2] | [核心指标3] | 备注 |
+|------|-----------|-----------|-----------|------|
+
+Then position the target company: is it trading at a premium, discount, or inline with peers? State WHY any premium/discount exists (growth differential, quality, risk).
+
+### 9.3 情景分析
+
+Always present at least 3 scenarios with the chosen valuation method:
+
+| 情景 | 关键假设 | [核心指标] | 合理倍数 | 隐含价值 | vs 当前 |
+|------|---------|-----------|---------|---------|--------|
+
+- Bull / Base / Bear with explicit assumptions for each
+- For commodity companies: sensitivity to commodity price (e.g., "锂价每变动1万元/吨 → 利润变动X亿")
+- Flag if current price already discounts the bull case
+
+### 9.4 分析师共识与分歧
+
+- Consensus rating and average target price
+- Notable bull/bear cases from specific analysts (name + firm + thesis)
+- Where consensus may be wrong (your assessment based on primary source analysis)
 
 ## 十、总结
 > Structured 2-3 sentence summary covering: current state, key inflection point, and primary risk.
@@ -231,8 +264,9 @@ Use multiple frameworks and cross-validate:
 11. **Cross-quarter tracking is mandatory for public companies** — Read at least 2-3 consecutive earnings call transcripts. Build the Analyst Concern Tracker (who asked what, how answers evolved) and the Promise vs. Delivery Tracker (what management committed to, what actually happened). This is where the real signal is.
 12. **Source priority** — **Earnings call transcripts and company IR materials are the HIGHEST priority source.** Investor Day / Analyst Day / Capital Markets Day presentations are second. These outrank all media coverage and analyst reports.
 13. **Investor Day credibility assessment is mandatory** — Don't just report management targets; critically evaluate them. Compare targets to current run-rate, Wall Street consensus, and competitive dynamics.
-14. **Scenario-based valuation** — Always present at least 3 valuation scenarios (bull/base/bear). Show implied stock prices for each.
-15. **Strategic investor signals matter** — If major customers or partners have made equity investments, note the amount, structure, and what it implies about demand visibility.
+14. **Industry-appropriate valuation** — Do NOT default to P/E for every company. Think like a specialist sector analyst: mining uses EV/resource and NAV; banks use P/TBV and ROTCE; SaaS uses EV/ARR and Rule of 40; consumer brands use EV/EBITDA. Explicitly state which method you chose and why. Always include a peer comparison table with 3-5 comparable companies.
+15. **Scenario-based valuation** — Always present at least 3 valuation scenarios (bull/base/bear) using the industry-appropriate method. Show implied values for each. Include commodity/price sensitivity where applicable.
+16. **Strategic investor signals matter** — If major customers or partners have made equity investments, note the amount, structure, and what it implies about demand visibility.
 16. **Analyst questions must be specific** — Include the analyst's full name, firm, the specific question (paraphrased from transcript), and management's specific answer. "分析师关心中国市场" is unacceptable; "Citi的Filippo Falorni在Q2电话会问旅游零售进展，CEO回答海南1月高双位数增长但北京上海机场因零售商过渡有扰动" is the expected level of detail.
 
 ## Example Trigger Phrases
