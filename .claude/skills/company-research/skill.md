@@ -13,28 +13,82 @@ If the company is **private/startup**, skip to Phase 1B (Multi-Source Search).
 
 ### Phase 1A: Primary Sources First (PUBLIC COMPANIES ONLY — MANDATORY)
 
-**This phase MUST be completed before any media search.** The goal is to extract facts directly from management's own words.
+**This phase MUST be completed before any media search.** The goal is to extract facts directly from management's own words, covering the **past 2 years (8 quarters)** of earnings calls.
 
-**Step 1: Retrieve the latest 2-3 quarterly earnings call transcripts**
-- Search: `"[Company] [Ticker] Q[N] FY[YYYY] earnings call transcript"`
+#### Architecture: Parallel Subagent Transcript Processing
+
+Reading 8 full transcripts in the main context is prohibitively expensive. Instead, use the **Agent tool** to spawn parallel subagents — one per quarter. Each subagent reads the FULL transcript independently and returns a compressed, structured extraction. The main agent then synthesizes across all 8 quarters.
+
+**Step 1: Identify all transcript URLs (main agent)**
+
+Search for all 8 quarterly earnings call transcripts from the past 2 years:
+- Search: `"[Company] [Ticker] Q[N] FY[YYYY] earnings call transcript"` for each quarter
 - Preferred sources: company IR page PDF, The Motley Fool, Seeking Alpha, FactSet
-- **Read the FULL transcript**, not summaries. Pay special attention to:
-  - CEO's prepared remarks: what topics does management lead with? What language changed vs. prior quarter?
-  - CFO's prepared remarks: guidance numbers, margin bridge, cash flow commentary
-  - **Analyst Q&A section**: every question and every answer, verbatim
+- Collect all transcript URLs before spawning subagents
 
-**Step 2: Retrieve the latest earnings press release and slide deck**
+**Step 2: Spawn parallel subagents (one per quarter, up to 8 concurrent)**
+
+For each transcript, launch an Agent with this prompt template:
+
+```
+You are a financial transcript analyst. Read the FULL earnings call transcript at [URL] for [Company] [Ticker] [Quarter] [Year].
+
+Read the complete transcript using WebFetch or curl. Do NOT summarize — read every word first, then extract.
+
+Return a JSON object with EXACTLY this structure:
+
+{
+  "quarter": "Q[N] FY[YYYY]",
+  "date": "YYYY-MM-DD",
+  "ceo_key_topics": ["topic1", "topic2", ...],
+  "ceo_notable_quotes": ["verbatim quote 1", "verbatim quote 2"],
+  "ceo_language_shifts": "What topics/framing changed vs how a CEO typically presents (note new emphases, dropped topics, tone changes)",
+  "cfo_guidance": {
+    "revenue": "guidance range or number",
+    "eps": "guidance range or number",
+    "gross_margin": "guidance range or number",
+    "op_margin": "guidance range or number",
+    "fcf": "guidance or commentary",
+    "other": "any other quantitative guidance"
+  },
+  "cfo_margin_bridge": "Key drivers of margin expansion/contraction mentioned",
+  "segment_performance": [
+    {"segment": "name", "revenue": "$X", "yoy": "+X%", "commentary": "key points"}
+  ],
+  "analyst_qa": [
+    {
+      "analyst_name": "Full Name",
+      "firm": "Firm Name",
+      "question_topic": "brief topic",
+      "question_detail": "specific question paraphrased",
+      "management_answer": "verbatim or near-verbatim key quote",
+      "follow_up": "if any"
+    }
+  ],
+  "forward_commitments": ["specific promise or target management made for future quarters"],
+  "risks_mentioned": ["risk 1", "risk 2"],
+  "surprise_moments": "anything unexpected — guidance cut/raise, strategic pivot, acquisition hint, unusual analyst pushback",
+  "source_url": "[URL]"
+}
+```
+
+**Step 3: Retrieve the latest earnings press release and slide deck (main agent, in parallel with Step 2)**
 - Search: `"[Company] investor relations quarterly earnings"` or go directly to the company's IR page
 - Extract: all financial tables, segment breakdowns, guidance ranges, balance sheet
 
-**Step 3: Retrieve Investor Day / Capital Markets Day materials (if any)**
+**Step 4: Retrieve Investor Day / Capital Markets Day materials (main agent, in parallel with Step 2)**
 - Search: `"[Company] [Ticker] investor day analyst day capital markets day"`
 - Extract: long-term revenue/margin targets, TAM/SAM, capacity plans, strategic framework
 
-**Step 4: Cross-Quarter Analyst Tracking (CRITICAL)**
-Read across 2-3 transcripts and build:
-- **Analyst Concern Tracker**: which specific questions were asked repeatedly across quarters? By whom? How did management's answer evolve?
-- **Promise vs. Delivery Tracker**: what did management commit to in prior quarters, and what actually happened?
+**Step 5: Cross-Quarter Synthesis (main agent, AFTER all subagents return)**
+
+Once all 8 subagent results are collected, the main agent builds:
+
+- **Narrative Arc**: How has management's story evolved over 2 years? What topics rose/fell in prominence? Map the CEO's key topics quarter by quarter to show strategic pivots.
+- **Guidance Trajectory**: Table tracking guidance numbers across all 8 quarters — did they consistently beat-and-raise, or were there cuts?
+- **Analyst Concern Tracker**: Which specific questions were asked repeatedly across quarters? By whom? How did management's answer evolve? (Cross-reference `analyst_qa` across all 8 extractions)
+- **Promise vs. Delivery Tracker**: What did management commit to (`forward_commitments`) in Q-N, and what actually happened in Q-N+1/N+2? Track fulfillment rate.
+- **Language Shift Analysis**: Combine all `ceo_language_shifts` and `surprise_moments` to identify inflection points in the company narrative.
 
 ### Phase 1B: Multi-Source Parallel Search
 
@@ -261,7 +315,7 @@ Use multiple frameworks and cross-validate:
 8. **Parallel search is critical** — always launch multiple search calls simultaneously to minimize latency.
 9. **Follow-up depth** — when user asks to drill into a specific topic, do additional targeted searches rather than just elaborating from existing knowledge.
 10. **PRIMARY SOURCES FIRST for public companies** — Earnings call transcripts > Quarterly press releases > Investor Day presentations > SEC filings > Analyst reports > Media coverage. Read the actual transcript, not someone's summary of it.
-11. **Cross-quarter tracking is mandatory for public companies** — Read at least 2-3 consecutive earnings call transcripts. Build the Analyst Concern Tracker (who asked what, how answers evolved) and the Promise vs. Delivery Tracker (what management committed to, what actually happened). This is where the real signal is.
+11. **Cross-quarter tracking is mandatory for public companies** — Read the past 2 years (8 quarters) of earnings call transcripts using parallel subagents (one Agent per quarter). Each subagent reads the FULL transcript and returns structured JSON. The main agent then synthesizes across all 8 quarters to build the Narrative Arc, Analyst Concern Tracker, Promise vs. Delivery Tracker, and Language Shift Analysis. This is where the real signal is.
 12. **Source priority** — **Earnings call transcripts and company IR materials are the HIGHEST priority source.** Investor Day / Analyst Day / Capital Markets Day presentations are second. These outrank all media coverage and analyst reports.
 13. **Investor Day credibility assessment is mandatory** — Don't just report management targets; critically evaluate them. Compare targets to current run-rate, Wall Street consensus, and competitive dynamics.
 14. **Industry-appropriate valuation** — Do NOT default to P/E for every company. Think like a specialist sector analyst: mining uses EV/resource and NAV; banks use P/TBV and ROTCE; SaaS uses EV/ARR and Rule of 40; consumer brands use EV/EBITDA. Explicitly state which method you chose and why. Always include a peer comparison table with 3-5 comparable companies.
